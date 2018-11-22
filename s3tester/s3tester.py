@@ -87,6 +87,15 @@ class TestCharlie(unittest.TestCase):
         bravo_bucket = self.client.Bucket(name=bravo_bucket_name)
         [_ for _ in bravo_bucket.objects.all()]
 
+    def test_cant_assume_delta(self):
+        client = boto3.client('sts', aws_access_key_id=alpha_key_id,
+                              aws_secret_access_key=alpha_key_secret)
+        with self.assertRaises(ClientError):
+            client.assume_role(
+                RoleArn=delta_role_arn,
+                RoleSessionName="test",
+            )
+
 
 if __name__ == '__main__':
     unittest.main()
