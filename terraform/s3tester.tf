@@ -4,53 +4,29 @@ provider "aws" {
   region     = "${var.region}"
 }
 
-resource "random_string" "alpha" {
-  length = 24
+resource "random_pet" "alpha" {}
 
-  special = false
+resource "random_pet" "bravo" {}
 
-  upper = false
-}
+resource "random_pet" "charlie" {}
 
-resource "random_string" "bravo" {
-  length = 24
-
-  special = false
-
-  upper = false
-}
-
-resource "random_string" "charlie" {
-  length = 24
-
-  special = false
-
-  upper = false
-}
-
-resource "random_string" "delta" {
-  length = 24
-
-  special = false
-
-  upper = false
-}
+resource "random_pet" "delta" {}
 
 # users / roles
 resource "aws_iam_user" "alpha" {
-  name = "s3tester-${random_string.alpha.result}"
+  name = "s3tester-alpha-${random_pet.alpha.id}"
 }
 
 resource "aws_iam_user" "bravo" {
-  name = "s3tester-${random_string.bravo.result}"
+  name = "s3tester-bravo-${random_pet.bravo.id}"
 }
 
 resource "aws_iam_user" "charlie" {
-  name = "s3tester-${random_string.charlie.result}"
+  name = "s3tester-charlie-${random_pet.charlie.id}"
 }
 
 resource "aws_iam_role" "delta" {
-  name = "s3tester-${random_string.delta.result}"
+  name = "s3tester-delta-${random_pet.delta.id}"
 
   assume_role_policy = <<EOF
 {
@@ -78,21 +54,21 @@ resource "aws_iam_access_key" "charlie" {
 
 # user policies
 resource "aws_iam_user_policy" "alpha" {
-  name = "s3tester-${random_string.alpha.result}"
+  name = "s3tester-alpha-${random_pet.alpha.id}"
 
   user   = "${aws_iam_user.alpha.name}"
   policy = "{\"Statement\": [{\"Action\": \"s3:*\", \"Effect\": \"Allow\", \"Resource\": \"*\" }] }"
 }
 
 resource "aws_iam_user_policy" "bravo" {
-  name = "s3tester-${random_string.bravo.result}"
+  name = "s3tester-bravo-${random_pet.bravo.id}"
 
   user   = "${aws_iam_user.bravo.name}"
   policy = "{\"Statement\": [{\"Action\": \"s3:*\", \"Effect\": \"Allow\", \"Resource\": \"*\" }] }"
 }
 
 resource "aws_iam_user_policy" "charlie" {
-  name = "s3tester-${random_string.charlie.result}"
+  name = "s3tester-charlie-${random_pet.charlie.id}"
 
   user   = "${aws_iam_user.charlie.name}"
   policy = "{\"Statement\": [{\"Action\": \"s3:*\", \"Effect\": \"Allow\", \"Resource\": \"*\" }] }"
@@ -100,7 +76,7 @@ resource "aws_iam_user_policy" "charlie" {
 
 # buckets
 resource "aws_s3_bucket" "alpha" {
-  bucket = "s3tester-${random_string.alpha.result}"
+  bucket = "s3tester-alpha-${random_pet.alpha.id}"
 }
 
 resource "aws_s3_bucket_policy" "alpha" {
@@ -138,7 +114,7 @@ POLICY
 }
 
 resource "aws_s3_bucket" "bravo" {
-  bucket = "s3tester-${random_string.bravo.result}"
+  bucket = "s3tester-bravo-${random_pet.bravo.id}"
 }
 
 resource "aws_s3_bucket_policy" "bravo" {
