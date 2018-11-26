@@ -5,11 +5,12 @@ name = "pypi"
 
 [packages]
 "boto3" = "*"
+
+[dev-packages]
 "flake8" = "*"
 ipdb = "*"
 ipython = "*"
-
-[dev-packages]
+yapf = "*"
 
 [requires]
 python_version = "3.7"
