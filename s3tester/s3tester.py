@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
+import math
 import time
 import unittest
 
 from botocore.client import Config
 from botocore.exceptions import ClientError
 import boto3
+from tqdm import tqdm
 import requests
 
 region = open("../terraform/output/region").read()
@@ -114,6 +116,22 @@ class TestCharlie(unittest.TestCase):
             )
 
 
+def get_file_with_progress(url):
+    r = requests.get(url, stream=True)
+    total_size = int(r.headers.get('content-length', 0))
+    chunk_size = 1024 * 1024
+    start_time = time.time()
+    for _ in tqdm(
+            r.iter_content(chunk_size=chunk_size),
+            unit='MB',
+            unit_scale=True,
+            total=math.ceil(total_size // chunk_size)):
+        pass
+    end_time = time.time()
+    print(end_time - start_time)
+    return r
+
+
 class TestEncryption(unittest.TestCase):
     def setUp(self):
         session = boto3.Session(
@@ -141,21 +159,13 @@ class TestEncryption(unittest.TestCase):
                 'Key': 'encrypted_testfile'
             })
 
-    def test_download_files(self):
-        time_a = time.time()
-        unencrypted_testfile_response = requests.get(
-            self.unencrypted_testfile_url)
-        time_b = time.time()
+    def test_download_unencrypted_file(self):
+        r = get_file_with_progress(self.unencrypted_testfile_url)
+        self.assertEqual(r.status_code, 200)
 
-        time_c = time.time()
-        encrypted_testfile_response = requests.get(self.encrypted_testfile_url)
-        time_d = time.time()
-
-        print(time_b - time_a)
-        print(time_d - time_c)
-
-        self.assertEqual(unencrypted_testfile_response.status_code, 200)
-        self.assertEqual(encrypted_testfile_response.status_code, 200)
+    def test_download_encrypted_file(self):
+        r = get_file_with_progress(self.encrypted_testfile_url)
+        self.assertEqual(r.status_code, 200)
 
 
 if __name__ == '__main__':
