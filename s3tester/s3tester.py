@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import time
 import unittest
 
 from botocore.client import Config
@@ -28,6 +29,7 @@ bravo_bucket_name = open("../terraform/output/bravo_bucket_name").read()
 echo_bucket_name = open("../terraform/output/echo_bucket_name").read()
 echo_bucket_domain = open("../terraform/output/echo_bucket_domain").read()
 echo_kms_id = open("../terraform/output/echo_kms_id").read()
+echo_kms_arn = open("../terraform/output/echo_kms_arn").read()
 
 
 class TestAlpha(unittest.TestCase):
@@ -114,9 +116,6 @@ class TestCharlie(unittest.TestCase):
 
 class TestEncryption(unittest.TestCase):
     def setUp(self):
-        print(echo_key_id)
-        print(echo_key_secret)
-
         session = boto3.Session(
             aws_access_key_id=echo_key_id,
             aws_secret_access_key=echo_key_secret,
@@ -143,12 +142,17 @@ class TestEncryption(unittest.TestCase):
             })
 
     def test_download_files(self):
-        print(self.unencrypted_testfile_url)
-        print(self.encrypted_testfile_url)
-        print(echo_kms_id)
+        time_a = time.time()
         unencrypted_testfile_response = requests.get(
             self.unencrypted_testfile_url)
+        time_b = time.time()
+
+        time_c = time.time()
         encrypted_testfile_response = requests.get(self.encrypted_testfile_url)
+        time_d = time.time()
+
+        print(time_b - time_a)
+        print(time_d - time_c)
 
         self.assertEqual(unencrypted_testfile_response.status_code, 200)
         self.assertEqual(encrypted_testfile_response.status_code, 200)

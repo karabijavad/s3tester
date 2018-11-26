@@ -10,11 +10,19 @@ resource "aws_iam_user_policy" "echo" {
   name = "s3tester-echo-${random_pet.echo.id}"
 
   user   = "${aws_iam_user.echo.name}"
-
-  policy = "{\"Statement\": [{\"Action\": \"kms:*\", \"Effect\": \"Allow\", \"Resource\": \"*\" }] }"
+  policy = <<POLICY
+{
+    "Version":"2008-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": ["kms:*"],
+            "Resource": "${aws_kms_key.echo.arn}"
+        }
+    ]
 }
-
-
+POLICY
+}
 resource "aws_iam_access_key" "echo" {
   user = "${aws_iam_user.echo.name}"
 }
@@ -43,6 +51,7 @@ resource "aws_s3_bucket_object" "echo_unencrypted_testfile" {
   bucket = "${aws_s3_bucket.echo.id}"
   key    = "unencrypted_testfile"
   source = "./testfile"
+  cache_control = "no-cache"
   acl = "private"
   etag   = "${md5(file("./testfile"))}"
 }
@@ -51,6 +60,7 @@ resource "aws_s3_bucket_object" "echo_encrypted_testfile" {
   bucket = "${aws_s3_bucket.echo.id}"
   key    = "encrypted_testfile"
   source = "./testfile"
+  cache_control = "no-cache"
   acl = "private"
   kms_key_id = "${aws_kms_key.echo.arn}"
 }
