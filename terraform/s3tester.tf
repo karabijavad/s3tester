@@ -199,3 +199,9 @@ resource "local_file" "delta_role_arn" {
 
   filename = "output/delta_role_arn"
 }
+
+resource "local_file" "region" {
+  content = "${var.region}"
+
+  filename = "output/region"
+}

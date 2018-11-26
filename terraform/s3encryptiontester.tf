@@ -6,6 +6,14 @@ resource "aws_kms_key" "echo" {
 resource "aws_iam_user" "echo" {
   name = "s3tester-echo-${random_pet.echo.id}"
 }
+resource "aws_iam_user_policy" "echo" {
+  name = "s3tester-echo-${random_pet.echo.id}"
+
+  user   = "${aws_iam_user.echo.name}"
+
+  policy = "{\"Statement\": [{\"Action\": \"kms:*\", \"Effect\": \"Allow\", \"Resource\": \"*\" }] }"
+}
+
 
 resource "aws_iam_access_key" "echo" {
   user = "${aws_iam_user.echo.name}"
@@ -25,7 +33,7 @@ resource "aws_s3_bucket_policy" "echo" {
             "Effect": "Allow",
             "Principal": {"AWS": "${aws_iam_user.echo.arn}"},
             "Action": "s3:*",
-            "Resource": "${aws_s3_bucket.echo.arn}"
+            "Resource": "${aws_s3_bucket.echo.arn}/*"
         }
     ]
 }
@@ -35,6 +43,7 @@ resource "aws_s3_bucket_object" "echo_unencrypted_testfile" {
   bucket = "${aws_s3_bucket.echo.id}"
   key    = "unencrypted_testfile"
   source = "./testfile"
+  acl = "private"
   etag   = "${md5(file("./testfile"))}"
 }
 
@@ -42,7 +51,11 @@ resource "aws_s3_bucket_object" "echo_encrypted_testfile" {
   bucket = "${aws_s3_bucket.echo.id}"
   key    = "encrypted_testfile"
   source = "./testfile"
+  acl = "private"
   kms_key_id = "${aws_kms_key.echo.arn}"
 }
 
 resource "local_file" "echo_bucket_name" { content = "${aws_s3_bucket.echo.id}",  filename = "output/echo_bucket_name" }
+resource "local_file" "echo_bucket_domain" { content = "${aws_s3_bucket.echo.bucket_domain_name}",  filename = "output/echo_bucket_domain" }
+resource "local_file" "echo_kms_id" { content = "${aws_kms_key.echo.id}",  filename = "output/echo_kms_id" }
+resource "local_file" "echo_kms_arn" { content = "${aws_kms_key.echo.arn}",  filename = "output/echo_kms_arn" }

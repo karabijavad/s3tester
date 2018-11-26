@@ -2,8 +2,12 @@
 
 import unittest
 
+from botocore.client import Config
 from botocore.exceptions import ClientError
 import boto3
+import requests
+
+region = open("../terraform/output/region").read()
 
 alpha_key_id = open("../terraform/output/alpha_key_id").read()
 alpha_key_secret = open("../terraform/output/alpha_key_secret").read()
@@ -22,6 +26,8 @@ delta_role_arn = open("../terraform/output/delta_role_arn").read()
 alpha_bucket_name = open("../terraform/output/alpha_bucket_name").read()
 bravo_bucket_name = open("../terraform/output/bravo_bucket_name").read()
 echo_bucket_name = open("../terraform/output/echo_bucket_name").read()
+echo_bucket_domain = open("../terraform/output/echo_bucket_domain").read()
+echo_kms_id = open("../terraform/output/echo_kms_id").read()
 
 
 class TestAlpha(unittest.TestCase):
@@ -107,8 +113,45 @@ class TestCharlie(unittest.TestCase):
 
 
 class TestEncryption(unittest.TestCase):
-    def test_download_unencrypted(self):
-        self.assertTrue(False)
+    def setUp(self):
+        print(echo_key_id)
+        print(echo_key_secret)
+
+        session = boto3.Session(
+            aws_access_key_id=echo_key_id,
+            aws_secret_access_key=echo_key_secret,
+            region_name=region)
+
+        s3 = session.client(
+            's3',
+            config=Config(
+                signature_version='s3v4', s3={'addressing_style': 'path'}),
+            region_name=region)
+
+        self.unencrypted_testfile_url = s3.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': echo_bucket_name,
+                'Key': 'unencrypted_testfile'
+            })
+
+        self.encrypted_testfile_url = s3.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': echo_bucket_name,
+                'Key': 'encrypted_testfile'
+            })
+
+    def test_download_files(self):
+        print(self.unencrypted_testfile_url)
+        print(self.encrypted_testfile_url)
+        print(echo_kms_id)
+        unencrypted_testfile_response = requests.get(
+            self.unencrypted_testfile_url)
+        encrypted_testfile_response = requests.get(self.encrypted_testfile_url)
+
+        self.assertEqual(unencrypted_testfile_response.status_code, 200)
+        self.assertEqual(encrypted_testfile_response.status_code, 200)
 
 
 if __name__ == '__main__':
