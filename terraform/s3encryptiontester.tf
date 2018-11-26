@@ -1,16 +1,10 @@
-resource "random_string" "echo" {
-  length = 24
-
-  special = false
-
-  upper = false
-}
+resource "random_pet" "echo" {}
 resource "aws_kms_key" "echo" {
   deletion_window_in_days = 7
 }
 
 resource "aws_iam_user" "echo" {
-  name = "s3tester-echo-${random_string.echo.result}"
+  name = "s3tester-echo-${random_pet.echo.id}"
 }
 
 resource "aws_iam_access_key" "echo" {
@@ -19,7 +13,7 @@ resource "aws_iam_access_key" "echo" {
 
 resource "local_file" "echo_key_id" { content = "${aws_iam_access_key.echo.id}", filename = "output/echo_key_id" }
 resource "local_file" "echo_key_secret" { content = "${aws_iam_access_key.echo.secret}", filename = "output/echo_key_secret" }
-resource "aws_s3_bucket" "echo" { bucket = "s3tester-echo-${random_string.echo.result}" }
+resource "aws_s3_bucket" "echo" { bucket = "s3tester-echo-${random_pet.echo.id}" }
 resource "aws_s3_bucket_policy" "echo" {
   bucket = "${aws_s3_bucket.echo.id}"
 
